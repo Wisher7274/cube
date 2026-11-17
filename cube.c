@@ -6,7 +6,7 @@
 #include <math.h>
 
 typedef struct {
-  int w,h,scale;
+  int w,h,scale_x,scale_y;
 } view;
 
 typedef struct {
@@ -65,7 +65,7 @@ void spin_rad(obj *o, vec3 axis) {
   
   float cx = cosf(axis.x), sx = sinf(axis.x);
   float cy = cosf(axis.y), sy = sinf(axis.y);
-  float cz = cosf(axis.x), sz = sinf(axis.z);
+  float cz = cosf(axis.z), sz = sinf(axis.z);
 
   for (int i = 0; i < o->vert_count; i++) {
         float x = o->verts[i].x;
@@ -100,7 +100,7 @@ void render(obj *o, graph *out, float z_offset) {
 
 void draw(graph *g, view v, char *buf, float *zbuf) {
   memset(zbuf, 0, (v.h * v.w) * sizeof(float));
-  memset(buf, ' ', (v.h + 1) * v.w);;
+  memset(buf, ' ', (v.w + 1) * v.h);
 
   for (int i = 0; i < v.h; i++) {
     int idx = (1 + i) * (v.w + 1) - 1;
@@ -108,8 +108,8 @@ void draw(graph *g, view v, char *buf, float *zbuf) {
   }
   
   for (int i = 0; i < g->vert_count; i++) {
-    int c = (v.w / 2) + (int)(g->verts[i].x * v.scale);
-    int r = (v.h / 2) - (int)(g->verts[i].y * v.scale);
+    int c = (v.w / 2) + (int)(g->verts[i].x * v.scale_x);
+    int r = (v.h / 2) - (int)(g->verts[i].y * v.scale_y);
 
     if (c < 1 || c > v.w || r < 1 || r > v.h) {
       continue;
@@ -129,11 +129,11 @@ void draw(graph *g, view v, char *buf, float *zbuf) {
     vert start = g->verts[g->edge_table[i][0]];
     vert end = g->verts[g->edge_table[i][1]];
 
-    int x1 = (v.w / 2) + (int)(start.x * v.scale),
-    y1 = (v.h / 2) - (int)(start.y * v.scale);
+    int x1 = (v.w / 2) + (int)(start.x * v.scale_x),
+    y1 = (v.h / 2) - (int)(start.y * v.scale_y);
     
-    int x2 = (v.w / 2) + (int)(end.x * v.scale),
-    y2 = (v.h / 2) - (int)(end.y * v.scale);
+    int x2 = (v.w / 2) + (int)(end.x * v.scale_x),
+    y2 = (v.h / 2) - (int)(end.y * v.scale_y);
 
     int steep = abs(y2 - y1) > abs(x2 - x1);
     if (steep) {
@@ -213,7 +213,8 @@ int main() {
   view screen = {
     .w = 32,
     .h = 32,
-    .scale = 8,
+    .scale_x = 10,
+    .scale_y = 5,
   };
 
   graph gph = {
